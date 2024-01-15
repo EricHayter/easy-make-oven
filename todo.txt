@@ -1,0 +1,3 @@
+- add some sort of traversal feature to find #includes
+- could add some additional features to include custom imports (i.e. rules)
+- handling extra command line flags (debugging, optimization, compiler) 
