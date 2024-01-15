@@ -15,6 +15,7 @@ operating system.
 
 import os
 import csv
+import tempfile
 from logging import eprint
 
 
@@ -66,12 +67,36 @@ def change_file_update(change_file: str, entry_name: str, time: float):
         change_file_add(change_file, entry_name, time)
         return
 
-    with open(change_file):
-        csvwritter = csv.writer(change_file, delimitor=' ')
+    fp = tempfile.TemporaryFile()  # create a temporary file
+    with open(change_file, mode='w+r') as file: 
+        csvreader = csv.reader(file, delimitor=' ')
+        for row in csvreader:
+            if row[CHANGE_FILE_NAME] == entry_name:
+                row[TIME_OF_MODIFICATION] == time
+            fp.write(' '.join(row))
+        file.writelines(fp.readlines())  # is writelines cooked?
+    fp.close()
 
 
-def change_file_pop():
-    return
+def change_file_pop(change_file: str, entry_name: str):
+    '''
+    removes a file entry in the change file
+    '''
+    if get_change_file_entry(change_file, entry_name) is None:
+        eprint(f'''[WARNING] entry {entry_name} does not exist in the change
+            file. An entry for {entry_name} has been created with the given
+            time {time}.''')
+        change_file_add(change_file, entry_name, time)
+        return
+
+    fp = tempfile.TemporaryFile()  # create a temporary file
+    with open(change_file, mode='w+r') as file: 
+        csvreader = csv.reader(file, delimitor=' ')
+        for row in csvreader:
+            if row[CHANGE_FILE_NAME] != entry_name:
+                fp.write(' '.join(row))
+        file.writelines(fp.readlines())  # is writelines cooked?
+    fp.close()
 
 
 def has_changed(change_file: str, entry_name: str):
