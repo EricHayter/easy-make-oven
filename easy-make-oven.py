@@ -7,7 +7,7 @@ import changes
 
 
 def main():
-    changes.change_file_add()
+    changes.has_changed('changed.csv', 'testing.py')
     return
 
 
