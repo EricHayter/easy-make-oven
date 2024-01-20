@@ -5,9 +5,12 @@ simple C/C++ build tool made in python
 
 import changes
 
+change_file = 'testing/changes.csv'
+test_file = 'testing/testing.py'
+
 
 def main():
-    changes.has_changed('changed.csv', 'testing.py')
+    changes.change_file_add(change_file, 'char.c', 25)
     return
 
 
