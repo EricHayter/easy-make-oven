@@ -19,7 +19,6 @@ import tempfile
 from logging import eprint
 
 
-CHANGE_FILE_NAME = 'changes.csv'
 FILENAME = 0
 TIME_OF_MODIFICATION = 1
 
@@ -33,16 +32,16 @@ def get_change_file_entry(change_file: str, entry_name: str):
         with open(change_file) as csvfile:
             csvreader = csv.reader(csvfile, delimiter=' ')
             for row in csvreader:
-                if row[FILENAME] == str:
+                if row[FILENAME] == entry_name:
                     return row
         return None
     except FileNotFoundError:
         eprint(f'[ERROR] file {change_file} not found.')
 
 
-def create_changes_file():
+def create_changes_file(file_name: str = 'changes.csv'):
     ''' creates a change file to store most recent modification of files'''
-    file = os.open(CHANGE_FILE_NAME)
+    file = os.open(file_name)
     file.close()
 
 
@@ -51,7 +50,7 @@ def change_file_add(change_file: str, entry_name: str, time: float):
         eprint(f'[ERROR] entry {entry_name} is already in change file.')
         return
 
-    with open(CHANGE_FILE_NAME) as csvfile:
+    with open(change_file, mode='a') as csvfile:
         csvwritter = csv.writer(csvfile, delimiter=' ')
         csvwritter.writerow((entry_name, time))
 
@@ -61,21 +60,22 @@ def change_file_update(change_file: str, entry_name: str, time: float):
     updates the time of an existing entry in the change file
     '''
     if get_change_file_entry(change_file, entry_name) is None:
-        eprint(f'''[WARNING] entry {entry_name} does not exist in the change
-            file. An entry for {entry_name} has been created with the given
-            time {time}.''')
-        change_file_add(change_file, entry_name, time)
+        eprint(f'''[WARNING] entry {entry_name} does not exist in \
+{change_file}. An entry for {entry_name} has been created \
+with the given time {time}.''')
+        # change_file_add(change_file, entry_name, time)
         return
 
-    fp = tempfile.TemporaryFile()  # create a temporary file
-    with open(change_file, mode='w+r') as file: 
-        csvreader = csv.reader(file, delimitor=' ')
+    rows = []
+    with open(change_file, mode='r') as file:
+        csvreader = csv.reader(file, delimiter=' ')
         for row in csvreader:
-            if row[CHANGE_FILE_NAME] == entry_name:
+            if row[FILENAME] == entry_name:
                 row[TIME_OF_MODIFICATION] == time
-            fp.write(' '.join(row))
-        file.writelines(fp.readlines())  # is writelines cooked?
-    fp.close()
+            rows.append(' '.join(row) + '\n')
+
+    with open(change_file, mode='w+') as file:
+        file.writelines(rows)
 
 
 def change_file_pop(change_file: str, entry_name: str):
@@ -84,18 +84,16 @@ def change_file_pop(change_file: str, entry_name: str):
     '''
     if get_change_file_entry(change_file, entry_name) is None:
         eprint(f'''[WARNING] entry {entry_name} does not exist in the change
-            file. An entry for {entry_name} has been created with the given
-            time {time}.''')
-        change_file_add(change_file, entry_name, time)
+            file. No changes have been made.''')
         return
 
-    fp = tempfile.TemporaryFile()  # create a temporary file
-    with open(change_file, mode='w+r') as file: 
-        csvreader = csv.reader(file, delimitor=' ')
+    fp = tempfile.TemporaryFile(mode='w+')  # create a temporary file
+    with open(change_file, mode='w+') as file:
+        csvreader = csv.reader(file, delimiter=' ')
         for row in csvreader:
-            if row[CHANGE_FILE_NAME] != entry_name:
+            if row[FILENAME] != entry_name:
                 fp.write(' '.join(row))
-        file.writelines(fp.readlines())  # is writelines cooked?
+        file.writelines(fp.readlines())
     fp.close()
 
 
