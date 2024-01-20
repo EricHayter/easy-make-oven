@@ -15,7 +15,6 @@ operating system.
 
 import os
 import csv
-import tempfile
 from logging import eprint
 
 
@@ -45,7 +44,10 @@ def create_changes_file(file_name: str = 'changes.csv'):
     file.close()
 
 
-def change_file_add(change_file: str, entry_name: str, time: float):
+def change_file_add(change_file: str, entry_name: str, time: int):
+    '''
+    appends new file and last modification time to the change file
+    '''
     if get_change_file_entry(change_file, entry_name) is not None:
         eprint(f'[ERROR] entry {entry_name} is already in change file.')
         return
@@ -55,7 +57,7 @@ def change_file_add(change_file: str, entry_name: str, time: float):
         csvwritter.writerow((entry_name, time))
 
 
-def change_file_update(change_file: str, entry_name: str, time: float):
+def change_file_update(change_file: str, entry_name: str, time: int):
     '''
     updates the time of an existing entry in the change file
     '''
@@ -63,18 +65,16 @@ def change_file_update(change_file: str, entry_name: str, time: float):
         eprint(f'''[WARNING] entry {entry_name} does not exist in \
 {change_file}. An entry for {entry_name} has been created \
 with the given time {time}.''')
-        # change_file_add(change_file, entry_name, time)
+        change_file_add(change_file, entry_name, time)
         return
 
-    rows = []
-    with open(change_file, mode='r') as file:
+    with open(change_file, mode='w+') as file:
+        rows = []
         csvreader = csv.reader(file, delimiter=' ')
         for row in csvreader:
             if row[FILENAME] == entry_name:
                 row[TIME_OF_MODIFICATION] == time
             rows.append(' '.join(row) + '\n')
-
-    with open(change_file, mode='w+') as file:
         file.writelines(rows)
 
 
@@ -83,18 +83,17 @@ def change_file_pop(change_file: str, entry_name: str):
     removes a file entry in the change file
     '''
     if get_change_file_entry(change_file, entry_name) is None:
-        eprint(f'''[WARNING] entry {entry_name} does not exist in the change
-            file. No changes have been made.''')
+        eprint(f'''[WARNING] entry {entry_name} does not exist in the change \
+file. No changes have been made.''')
         return
 
-    fp = tempfile.TemporaryFile(mode='w+')  # create a temporary file
     with open(change_file, mode='w+') as file:
+        rows = []
         csvreader = csv.reader(file, delimiter=' ')
         for row in csvreader:
             if row[FILENAME] != entry_name:
-                fp.write(' '.join(row))
-        file.writelines(fp.readlines())
-    fp.close()
+                rows.append(' '.join(row) + '\n')
+        file.writelines(rows)
 
 
 def has_changed(change_file: str, entry_name: str):
