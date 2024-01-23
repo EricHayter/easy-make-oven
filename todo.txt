@@ -1,3 +1,5 @@
 - add some sort of traversal feature to find #includes
+    - do a depth first search and keep track of visited nodes, if an edge takes you back to a visited node then it has a cycle
+    - output the files that are included in the cycle
 - could add some additional features to include custom imports (i.e. rules)
 - handling extra command line flags (debugging, optimization, compiler) 
